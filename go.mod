@@ -1,3 +1,3 @@
-module github.com/dmundt/sliceql
+module sliceql
 
 go 1.21.1
