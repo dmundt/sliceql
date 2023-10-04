@@ -14,6 +14,14 @@ type Query[E comparable] struct {
 	s []E
 }
 
+func (q *Query[E]) As() []E {
+	return q.s
+}
+
+func (q *Query[E]) To() []E {
+	return q.s
+}
+
 func From[E comparable](s []E) *Query[E] {
 	return &Query[E]{s: s}
 }
