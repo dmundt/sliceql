@@ -111,8 +111,8 @@ func (q *Query[E]) Fold(initial E, combine Combiner[E]) E {
 	return result
 }
 
-func (q *Query[E]) Index(s []E, e E) int {
-	for i, v := range s {
+func (q *Query[E]) Index(e E) int {
+	for i, v := range q.s {
 		// v and e are type S, which has the comparable
 		// constraint, so we can use == here.
 		if v == e {
