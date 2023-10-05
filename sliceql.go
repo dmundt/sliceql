@@ -25,11 +25,11 @@ func From[E comparable](s *[]E) *Query[E] {
 }
 
 func (q *Query[E]) As() []E {
-	return *q
+	return []E(*q)
 }
 
 func (q *Query[E]) To() []E {
-	return *q
+	return []E(*q)
 }
 
 func Create[E comparable](count int, create Creater[E]) *Query[E] {
