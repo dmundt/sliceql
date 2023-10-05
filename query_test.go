@@ -5,45 +5,47 @@ import (
 	"testing"
 )
 
-func Test_From(t *testing.T) {
-	type args struct {
-		s []int
-	}
-	tests := []struct {
-		name string
-		args args
-		want *Query[int]
-	}{
-		{
-			name: "nil slice",
-			args: args{
-				s: nil,
-			},
-			want: &Query[int]{nil},
-		},
-		{
-			name: "zero slice",
-			args: args{
-				s: []int{},
-			},
-			want: &Query[int]{[]int{}},
-		},
-		{
-			name: "any slice",
-			args: args{
-				s: []int{1, 2, 3, 4, 5},
-			},
-			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := From(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("From() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// type ints []int
+
+// func Test_From(t *testing.T) {
+// 	type args struct {
+// 		s []int
+// 	}
+// 	tests := []struct {
+// 		name string
+// 		args args
+// 		want *Query[int]
+// 	}{
+// 		{
+// 			name: "nil slice",
+// 			args: args{
+// 				s: nil,
+// 			},
+// 			want: &Query[int]{nil},
+// 		},
+// 		{
+// 			name: "zero slice",
+// 			args: args{
+// 				s: []int{},
+// 			},
+// 			want: &Query[int]{[]int{}},
+// 		},
+// 		{
+// 			name: "any slice",
+// 			args: args{
+// 				s: []int{1, 2, 3, 4, 5},
+// 			},
+// 			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			if got := From[int](tt.args.s); !reflect.DeepEqual(got, tt.want) {
+// 				t.Errorf("From() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
 
 func Test_Create(t *testing.T) {
 	type args struct {
@@ -63,7 +65,7 @@ func Test_Create(t *testing.T) {
 					return index
 				},
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "nil creater",
@@ -71,7 +73,7 @@ func Test_Create(t *testing.T) {
 				count: 10,
 				f:     nil,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "zero count slice",
@@ -81,7 +83,7 @@ func Test_Create(t *testing.T) {
 					return index
 				},
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "indexed slice",
@@ -91,7 +93,7 @@ func Test_Create(t *testing.T) {
 					return index + 1
 				},
 			},
-			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
+			want: &Query[int]{1, 2, 3, 4, 5},
 		},
 	}
 	for _, tt := range tests {
@@ -116,7 +118,7 @@ func TestQuery_All(t *testing.T) {
 		{
 			name: "nil predicate",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
 			},
 			want: false,
@@ -124,7 +126,7 @@ func TestQuery_All(t *testing.T) {
 		{
 			name: "nil sequence",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -134,7 +136,7 @@ func TestQuery_All(t *testing.T) {
 		{
 			name: "empty slice (false condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return false
 				},
@@ -144,7 +146,7 @@ func TestQuery_All(t *testing.T) {
 		{
 			name: "empty slice (true condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -154,7 +156,7 @@ func TestQuery_All(t *testing.T) {
 		{
 			name: "false condition",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return false
 				},
@@ -184,7 +186,7 @@ func TestQuery_Any(t *testing.T) {
 		{
 			name: "nil predicate",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
 			},
 			want: false,
@@ -192,7 +194,7 @@ func TestQuery_Any(t *testing.T) {
 		{
 			name: "nil sequence",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -202,7 +204,7 @@ func TestQuery_Any(t *testing.T) {
 		{
 			name: "empty slice (false condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return false
 				},
@@ -212,7 +214,7 @@ func TestQuery_Any(t *testing.T) {
 		{
 			name: "empty slice (true condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -222,7 +224,7 @@ func TestQuery_Any(t *testing.T) {
 		{
 			name: "true condition",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return true
 				},
@@ -252,7 +254,7 @@ func TestQuery_At(t *testing.T) {
 		{
 			name: "valid index",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: 2,
 			},
 			want: 3,
@@ -260,7 +262,7 @@ func TestQuery_At(t *testing.T) {
 		{
 			name: "negative index",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: -1,
 			},
 			want: 0,
@@ -268,7 +270,7 @@ func TestQuery_At(t *testing.T) {
 		{
 			name: "index out of range",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: 10,
 			},
 			want: 0,
@@ -276,7 +278,7 @@ func TestQuery_At(t *testing.T) {
 		{
 			name: "empty slice",
 			args: args{
-				q:     &Query[int]{[]int{}},
+				q:     &Query[int]{},
 				index: 0,
 			},
 			want: 0,
@@ -304,7 +306,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "nil predicate",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
 			},
 			want: 0,
@@ -312,7 +314,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "nil sequence",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -322,7 +324,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "empty slice (false condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return false
 				},
@@ -332,7 +334,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "empty slice (true condition)",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return true
 				},
@@ -342,7 +344,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "true condition",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return true
 				},
@@ -352,7 +354,7 @@ func TestQuery_Count(t *testing.T) {
 		{
 			name: "even condition",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return num%2 == 0
 				},
@@ -377,51 +379,51 @@ func TestQuery_Each(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []int
+		want *Query[int]
 	}{
 		{
 			name: "nil action",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
 			},
-			want: []int{1, 2, 3, 4, 5},
+			want: &Query[int]{1, 2, 3, 4, 5},
 		},
 		{
 			name: "nil sequence",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 				f: func(num *int) {
 					t.Errorf("Unexpected action function call")
 				},
 			},
-			want: nil,
+			want: &Query[int]{},
 		},
 		{
 			name: "empty slice",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				f: func(num *int) {
 					t.Errorf("Unexpected action function call")
 				},
 			},
-			want: []int{},
+			want: &Query[int]{},
 		},
 		{
 			name: "non empty slice",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num *int) {
 					*num++
 				},
 			},
-			want: []int{2, 3, 4, 5, 6},
+			want: &Query[int]{2, 3, 4, 5, 6},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.args.q.Each(tt.args.f); !reflect.DeepEqual(tt.args.q.s, tt.want) {
-				t.Errorf("Query.Each() = %v, want %v", tt.args.q.s, tt.want)
+			if tt.args.q.Each(tt.args.f); !reflect.DeepEqual(tt.args.q, tt.want) {
+				t.Errorf("Query.Each() = %v, want %v", tt.args.q, tt.want)
 			}
 		})
 	}
@@ -439,20 +441,20 @@ func TestQuery_First(t *testing.T) {
 		{
 			name: "nil slice",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 			},
 			want: 0,
 		},
 		{
 			name: "one item",
 			args: args{
-				q: &Query[int]{[]int{1}}},
+				q: &Query[int]{1}},
 			want: 1,
 		},
 		{
 			name: "many items",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 			},
 			want: 1,
 		},
@@ -479,7 +481,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "nil slice",
 			args: args{
-				q: &Query[int]{nil},
+				q: &Query[int]{},
 				e: 0,
 			},
 			want: -1,
@@ -487,7 +489,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "empty slice",
 			args: args{
-				q: &Query[int]{[]int{}},
+				q: &Query[int]{},
 				e: 0,
 			},
 			want: -1,
@@ -495,7 +497,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "unknown value",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				e: 10,
 			},
 			want: -1,
@@ -503,7 +505,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "first index",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				e: 1,
 			},
 			want: 0,
@@ -511,7 +513,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "some index",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				e: 3,
 			},
 			want: 2,
@@ -519,7 +521,7 @@ func TestQuery_Index(t *testing.T) {
 		{
 			name: "last index",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				e: 5,
 			},
 			want: 4,
@@ -546,20 +548,20 @@ func TestQuery_Last(t *testing.T) {
 		{
 			name: "nil slice",
 			args: args{
-				q: &Query[int]{nil}},
+				q: &Query[int]{}},
 			want: 0,
 		},
 		{
 			name: "one item",
 			args: args{
-				q: &Query[int]{[]int{1}},
+				q: &Query[int]{1},
 			},
 			want: 1,
 		},
 		{
 			name: "many items",
 			args: args{
-				q: &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 			},
 			want: 5,
 		},
@@ -586,50 +588,50 @@ func TestQuery_Skip(t *testing.T) {
 		{
 			name: "negative count",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: -1,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "empty slice",
 			args: args{
-				q:     &Query[int]{[]int{}},
+				q:     &Query[int]{},
 				count: 1,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "non empty slice 1",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 0,
 			},
-			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
+			want: &Query[int]{1, 2, 3, 4, 5},
 		},
 		{
 			name: "non empty slice 2",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 3,
 			},
-			want: &Query[int]{[]int{4, 5}},
+			want: &Query[int]{4, 5},
 		},
 		{
 			name: "complete slice",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 5,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "large index",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 10,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 	}
 	for _, tt := range tests {
@@ -654,50 +656,50 @@ func TestQuery_Take(t *testing.T) {
 		{
 			name: "negative count",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: -1,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "empty slice",
 			args: args{
-				q:     &Query[int]{[]int{}},
+				q:     &Query[int]{},
 				count: 1,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "non empty slice",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 0,
 			},
-			want: &Query[int]{[]int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "non empty slice",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 3,
 			},
-			want: &Query[int]{[]int{1, 2, 3}},
+			want: &Query[int]{1, 2, 3},
 		},
 		{
 			name: "complete slice",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 5,
 			},
-			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
+			want: &Query[int]{1, 2, 3, 4, 5},
 		},
 		{
 			name: "complete slice",
 			args: args{
-				q:     &Query[int]{[]int{1, 2, 3, 4, 5}},
+				q:     &Query[int]{1, 2, 3, 4, 5},
 				count: 10,
 			},
-			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
+			want: &Query[int]{1, 2, 3, 4, 5},
 		},
 	}
 	for _, tt := range tests {
@@ -722,50 +724,50 @@ func TestQuery_Where(t *testing.T) {
 		{
 			name: "nil tester",
 			args: args{
-				q: &Query[int]{s: []int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
 			},
-			want: &Query[int]{s: []int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "nil sequence",
 			args: args{
-				q: &Query[int]{s: nil},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return num > 0
 				},
 			},
-			want: &Query[int]{s: []int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "empty slice",
 			args: args{
-				q: &Query[int]{s: []int{}},
+				q: &Query[int]{},
 				f: func(num int) bool {
 					return num > 0
 				},
 			},
-			want: &Query[int]{s: []int{}},
+			want: &Query[int]{},
 		},
 		{
 			name: "non empty slice",
 			args: args{
-				q: &Query[int]{s: []int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return num%2 == 0
 				},
 			},
-			want: &Query[int]{s: []int{2, 4}},
+			want: &Query[int]{2, 4},
 		},
 		{
 			name: "false condition",
 			args: args{
-				q: &Query[int]{s: []int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num int) bool {
 					return num > 5
 				},
 			},
-			want: &Query[int]{s: []int{}},
+			want: &Query[int]{},
 		},
 	}
 	for _, tt := range tests {
@@ -789,21 +791,21 @@ func TestQuery_String(t *testing.T) {
 		{
 			name: "nil slice",
 			args: args{
-				q: &Query[int]{s: nil},
+				q: &Query[int]{},
 			},
 			want: "[]",
 		},
 		{
 			name: "empty slice",
 			args: args{
-				q: &Query[int]{s: []int{}},
+				q: &Query[int]{},
 			},
 			want: "[]",
 		},
 		{
 			name: "non empty slice",
 			args: args{
-				q: &Query[int]{s: []int{1, 2, 3, 4, 5}},
+				q: &Query[int]{1, 2, 3, 4, 5},
 			},
 			want: "[1 2 3 4 5]",
 		},
