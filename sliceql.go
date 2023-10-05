@@ -12,23 +12,25 @@ type Tester[E any] func(E) bool
 
 type Query[E comparable] []E
 
-func New[E comparable](s []E) *Query[E] {
-	tmp := Query[E](make([]E, len(s)))
-	copy(tmp, s)
-	return &tmp
+func New[E comparable](s *[]E) *Query[E] {
+	// Make shallow copy of slice elements.
+	q := Query[E](*s)
+	return &q
 }
 
-// func From[S ~[]E, E comparable](s S) *Query[E] {
-// 	return &s
-// }
+func From[E comparable](s *[]E) *Query[E] {
+	// Make shallow copy of slice elements.
+	q := Query[E](*s)
+	return &q
+}
 
-// func (q *Query[E]) As() S {
-// 	return q.s
-// }
+func (q *Query[E]) As() []E {
+	return *q
+}
 
-// func (q *Query[E]) To() S {
-// 	return q.s
-// }
+func (q *Query[E]) To() []E {
+	return *q
+}
 
 func Create[E comparable](count int, create Creater[E]) *Query[E] {
 	if count <= 0 || create == nil {
@@ -90,7 +92,7 @@ func (q *Query[E]) Each(action Actioner[E]) *Query[E] {
 		return q
 	}
 	for i := range *q {
-		action(&((*q)[i]))
+		action(&(*q)[i])
 	}
 	return q
 }
