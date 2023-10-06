@@ -36,9 +36,21 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: false
+          # cache: false
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.54
           only-new-issues: true
+  scan:
+    name: scan
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@v2.17.0
+        with:
+          args: ./...
