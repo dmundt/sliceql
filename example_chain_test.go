@@ -27,7 +27,7 @@ func Example() {
 		{"John", 42},
 		{"Michael", 17},
 	}
-	s := New(&people)
+	s := New(people)
 	fmt.Println(s)
 
 	// Where() returns a new slice with the elements that match all persons

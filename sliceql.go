@@ -12,15 +12,15 @@ type Tester[E any] func(E) bool
 
 type Query[E comparable] []E
 
-func New[E comparable](s *[]E) *Query[E] {
+func New[E comparable](s []E) *Query[E] {
 	// Make shallow copy of slice elements.
-	q := Query[E](*s)
+	q := Query[E](s)
 	return &q
 }
 
-func From[E comparable](s *[]E) *Query[E] {
+func From[E comparable](s []E) *Query[E] {
 	// Make shallow copy of slice elements.
-	q := Query[E](*s)
+	q := Query[E](s)
 	return &q
 }
 

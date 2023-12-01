@@ -5,48 +5,6 @@ import (
 	"testing"
 )
 
-// type ints []int
-
-// func Test_From(t *testing.T) {
-// 	type args struct {
-// 		s []int
-// 	}
-// 	tests := []struct {
-// 		name string
-// 		args args
-// 		want *Query[int]
-// 	}{
-// 		{
-// 			name: "nil slice",
-// 			args: args{
-// 				s: nil,
-// 			},
-// 			want: &Query[int]{nil},
-// 		},
-// 		{
-// 			name: "zero slice",
-// 			args: args{
-// 				s: []int{},
-// 			},
-// 			want: &Query[int]{[]int{}},
-// 		},
-// 		{
-// 			name: "any slice",
-// 			args: args{
-// 				s: []int{1, 2, 3, 4, 5},
-// 			},
-// 			want: &Query[int]{[]int{1, 2, 3, 4, 5}},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if got := From[int](tt.args.s); !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("From() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
-
 func Test_Create(t *testing.T) {
 	type args struct {
 		count int
@@ -414,7 +372,7 @@ func TestQuery_Each(t *testing.T) {
 			args: args{
 				q: &Query[int]{1, 2, 3, 4, 5},
 				f: func(num *int) {
-					*num++
+					(*num)++
 				},
 			},
 			want: &Query[int]{2, 3, 4, 5, 6},
