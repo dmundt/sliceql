@@ -1,3 +1,8 @@
+// Package sliceql implements query support for Go language slices.
+//
+// Source code and other details for the project are available at GitHub:
+//
+//	https://github.com/dmundt/sliceql
 package sliceql
 
 import (

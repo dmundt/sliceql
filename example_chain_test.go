@@ -1,3 +1,9 @@
+// Package sliceql implements query support for Go language slices.
+//
+// Source code and other details for the project are available at GitHub:
+//
+//   https://github.com/dmundt/sliceql
+//
 package sliceql
 
 import (
@@ -20,6 +26,14 @@ func (a ByAge) Len() int           { return len(a) }
 func (a ByAge) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByAge) Less(i, j int) bool { return a[i].Age < a[j].Age }
 
+// Example initializes a slice of Person objects and
+// performs a series of operations on that slice using
+// the NewQuery type.
+
+// It demonstrates the usage of the Where() method
+// to filter elements based on a condition, the Sort() method
+// to sort the elements, and the Last() method
+// to retrieve the last elementin the slice.
 func Example() {
 	people := []Person{
 		{"Bob", 31},
@@ -27,7 +41,7 @@ func Example() {
 		{"John", 42},
 		{"Michael", 17},
 	}
-	s := New(people)
+	s := NewQuery(people)
 	fmt.Println(s)
 
 	// Where() returns a new slice with the elements that match all persons
