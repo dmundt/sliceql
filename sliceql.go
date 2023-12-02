@@ -2,11 +2,13 @@
 //
 // Source code and other details for the project are available at GitHub:
 //
-//   https://github.com/dmundt/sliceql
-//
+//	https://github.com/dmundt/sliceql
 package sliceql
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 // The Actioner interface is implemented by any function that
 // takes a pointer to an element of type E. The element may be
@@ -23,8 +25,14 @@ type Combiner[E any] func(E, E) E
 // of type E.
 type Creater[E any] func(int) E
 
+// The Lesser interface is implemented by any function that
+// takes two elements of type E and returns a boolean value
+// indicating whether the first element is less than the
+// second element.
+type Lesser[E comparable] func(E, E) bool
+
 // The Tester interface is implemented by any function that
-// takes an element of type E, tests whether it satisfies 
+// takes an element of type E, tests whether it satisfies
 // the given condition and returns a boolean value.
 type Tester[E any] func(E) bool
 
@@ -77,11 +85,11 @@ func Create[E comparable](count int, create Creater[E]) *Query[E] {
 	if count <= 0 || create == nil {
 		return &Query[E]{}
 	}
-	result := Query[E](make([]E, count))
+	q := Query[E](make([]E, count))
 	for i := 0; i < count; i++ {
-		result[i] = create(i)
+		q[i] = create(i)
 	}
-	return &result
+	return &q
 }
 
 // All checks if all elements in the query satisfy the given test.
@@ -126,11 +134,11 @@ func (q *Query[E]) Any(test Tester[E]) bool {
 // - index: the index of the element to retrieve.
 // Return type(s):
 // - E: the element at the specified index.
-func (q *Query[E]) At(index int) E {
+func (q *Query[E]) At(index int) *E {
 	if index < 0 || index >= len(*q) {
-		return *new(E)
+		return nil
 	}
-	return (*q)[index]
+	return &(*q)[index]
 }
 
 // Count returns the number of elements in the Query
@@ -169,11 +177,11 @@ func (q *Query[E]) Each(action Actioner[E]) *Query[E] {
 //
 // No parameters.
 // Returns the element of type E.
-func (q *Query[E]) First() E {
+func (q *Query[E]) First() *E {
 	if len(*q) == 0 {
-		return *new(E)
+		return nil
 	}
-	return (*q)[0]
+	return &(*q)[0]
 }
 
 // Fold applies the combine function to each element in the Query
@@ -186,17 +194,12 @@ func (q *Query[E]) First() E {
 // It returns the accumulated result after applying the combine
 // function to each element in the Query.
 // The return type is the same as the type of the initial value.
-func (q *Query[E]) Fold(initial E, combine Combiner[E]) E {
-	if len(*q) == 0 || combine == nil {
-		return *new(E)
-	} else if len(*q) == 1 {
-		return (*q)[0]
-	}
+func (q *Query[E]) Fold(initial E, combine Combiner[E]) *E {
 	result := initial
-	for i := 0; i < len(*q); i++ {
-		result = combine(result, (*q)[i])
+	for _, v := range *q {
+		result = combine(result, v)
 	}
-	return result
+	return &result
 }
 
 // Index finds the index of an element in the Query.
@@ -219,11 +222,11 @@ func (q *Query[E]) Index(e E) int {
 //
 // It does not take any parameters.
 // It returns the type E.
-func (q *Query[E]) Last() E {
+func (q *Query[E]) Last() *E {
 	if len(*q) == 0 {
-		return *new(E)
+		return nil
 	}
-	return (*q)[len(*q)-1]
+	return &(*q)[len(*q)-1]
 }
 
 // Skip removes the first 'count' elements from the Query.
@@ -232,11 +235,26 @@ func (q *Query[E]) Last() E {
 // Returns: a pointer to the modified Query.
 func (q *Query[E]) Skip(count int) *Query[E] {
 	if len(*q) == 0 || count < 0 {
-		*q = make([]E, 0)
-		return q
+		return &Query[E]{}
 	}
 	m := min(count, len(*q))
 	*q = (*q)[m:]
+	return q
+}
+
+// Sort sorts the elements in the Query slice using the provided less function.
+//
+// The less function should return true if the element at index i should be
+// placed before the element at index j in the sorted slice.
+//
+// Returns a pointer to the original Query slice after sorting.
+func (q *Query[E]) Sort(less Lesser[E]) *Query[E] {
+	if len(*q) == 0 || less == nil {
+		return q
+	}
+	sort.Slice(*q, func(i, j int) bool {
+		return less((*q)[i], (*q)[j])
+	})
 	return q
 }
 
@@ -247,8 +265,7 @@ func (q *Query[E]) Skip(count int) *Query[E] {
 // *Query[E]: a new Query with the specified number of elements.
 func (q *Query[E]) Take(count int) *Query[E] {
 	if len(*q) == 0 || count < 0 {
-		*q = make([]E, 0)
-		return q
+		return &Query[E]{}
 	}
 	m := min(count, len(*q))
 	*q = (*q)[:m]
@@ -266,10 +283,9 @@ func (q *Query[E]) Take(count int) *Query[E] {
 // The function returns a pointer to the filtered Query.
 func (q *Query[E]) Where(test Tester[E]) *Query[E] {
 	if len(*q) == 0 || test == nil {
-		*q = make([]E, 0)
-		return q
+		return &Query[E]{}
 	}
-	result := make([]E, 0, len(*q))
+	result := Query[E](make([]E, 0))
 	for _, e := range *q {
 		if test(e) {
 			result = append(result, e)

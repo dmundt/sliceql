@@ -64,7 +64,7 @@ func ExampleQuery_Any() {
 func ExampleQuery_At() {
 	// At() returns the element at the given index.
 	s := NewQuery[int]([]int{1, 2, 3, 4, 5})
-	fmt.Println(s.At(2))
+	fmt.Println(*s.At(2))
 
 	// Output:
 	// 3

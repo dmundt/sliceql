@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+func addrOf(i int) *int { return &i }
+
 func Test_Create(t *testing.T) {
 	type args struct {
 		count int
@@ -212,7 +214,7 @@ func TestQuery_At(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want int
+		want *int
 	}{
 		{
 			name: "valid index",
@@ -220,7 +222,7 @@ func TestQuery_At(t *testing.T) {
 				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: 2,
 			},
-			want: 3,
+			want: addrOf(3),
 		},
 		{
 			name: "negative index",
@@ -228,7 +230,7 @@ func TestQuery_At(t *testing.T) {
 				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: -1,
 			},
-			want: 0,
+			want: nil,
 		},
 		{
 			name: "index out of range",
@@ -236,7 +238,7 @@ func TestQuery_At(t *testing.T) {
 				q:     &Query[int]{1, 2, 3, 4, 5},
 				index: 10,
 			},
-			want: 0,
+			want: nil,
 		},
 		{
 			name: "empty slice",
@@ -244,12 +246,12 @@ func TestQuery_At(t *testing.T) {
 				q:     &Query[int]{},
 				index: 0,
 			},
-			want: 0,
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.args.q.At(tt.args.index); got != tt.want {
+			if got := tt.args.q.At(tt.args.index); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Query.At() = %v, want %v", got, tt.want)
 			}
 		})
@@ -399,33 +401,138 @@ func TestQuery_First(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want int
+		want *int
 	}{
 		{
 			name: "nil slice",
 			args: args{
 				q: &Query[int]{},
 			},
-			want: 0,
+			want: nil,
 		},
 		{
 			name: "one item",
 			args: args{
 				q: &Query[int]{1}},
-			want: 1,
+			want: addrOf(1),
 		},
 		{
 			name: "many items",
 			args: args{
 				q: &Query[int]{1, 2, 3, 4, 5},
 			},
-			want: 1,
+			want: addrOf(1),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.args.q.First(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Query.First() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestQuery_Fold(t *testing.T) {
+	type args struct {
+		q *Query[int]
+		i int
+		f Combiner[int]
+	}
+	tests := []struct {
+		name string
+		args args
+		want *int
+	}{
+		{
+			name: "empty slice",
+			args: args{
+				q: &Query[int]{},
+				i: 0,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(0),
+		},
+		{
+			name: "empty slice (w/ offset)",
+			args: args{
+				q: &Query[int]{},
+				i: 10,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(10),
+		},
+		{
+			name: "nil combiner",
+			args: args{
+				q: &Query[int]{},
+				i: 0,
+				f: nil,
+			},
+			want: addrOf(0),
+		},
+		{
+			name: "nil combiner  (w/ offset)",
+			args: args{
+				q: &Query[int]{},
+				i: 10,
+				f: nil,
+			},
+			want: addrOf(10),
+		},
+		{
+			name: "one item",
+			args: args{
+				q: &Query[int]{1},
+				i: 0,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(1),
+		},
+		{
+			name: "one item (w/ offset)",
+			args: args{
+				q: &Query[int]{1},
+				i: 10,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(11),
+		},
+		{
+			name: "many items",
+			args: args{
+				q: &Query[int]{1, 2, 3, 4, 5},
+				i: 0,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(15),
+		},
+		{
+			name: "many items (w/ offset)",
+			args: args{
+				q: &Query[int]{1, 2, 3, 4, 5},
+				i: 10,
+				f: func(acc int, num int) int {
+					return acc + num
+				},
+			},
+			want: addrOf(25),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.q.Fold(tt.args.i, tt.args.f); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Query.Fold() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -506,33 +613,33 @@ func TestQuery_Last(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want int
+		want *int
 	}{
 		{
 			name: "nil slice",
 			args: args{
 				q: &Query[int]{}},
-			want: 0,
+			want: nil,
 		},
 		{
 			name: "one item",
 			args: args{
 				q: &Query[int]{1},
 			},
-			want: 1,
+			want: addrOf(1),
 		},
 		{
 			name: "many items",
 			args: args{
 				q: &Query[int]{1, 2, 3, 4, 5},
 			},
-			want: 5,
+			want: addrOf(5),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.args.q.Last(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Query.Last() = %v, want %v", got, tt.want)
+				t.Errorf("Query.Last() = %v, want %v", *got, *tt.want)
 			}
 		})
 	}
@@ -601,6 +708,76 @@ func TestQuery_Skip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.args.q.Skip(tt.args.count); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Query.Skip() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestQuery_Sort(t *testing.T) {
+	type args struct {
+		q *Query[int]
+		f Lesser[int]
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Query[int]
+	}{
+		{
+			name: "nil action",
+			args: args{
+				q: &Query[int]{5, 4, 3, 2, 1},
+				f: nil,
+			},
+			want: &Query[int]{5, 4, 3, 2, 1},
+		},
+		{
+			name: "nil sequence",
+			args: args{
+				q: &Query[int]{},
+				f: func(i, j int) bool {
+					t.Errorf("Unexpected action function call")
+					return i < j
+				},
+			},
+			want: &Query[int]{},
+		},
+		{
+			name: "empty slice",
+			args: args{
+				q: &Query[int]{},
+				f: func(i, j int) bool {
+					t.Errorf("Unexpected action function call")
+					return i < j
+				},
+			},
+			want: &Query[int]{},
+		},
+		{
+			name: "ascending sort",
+			args: args{
+				q: &Query[int]{3, 2, 5, 4, 1},
+				f: func(i, j int) bool {
+					return i < j
+				},
+			},
+			want: &Query[int]{1, 2, 3, 4, 5},
+		},
+		{
+			name: "descending sort",
+			args: args{
+				q: &Query[int]{3, 2, 5, 4, 1},
+				f: func(i, j int) bool {
+					return i > j
+				},
+			},
+			want: &Query[int]{5, 4, 3, 2, 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.args.q.Sort(tt.args.f); !reflect.DeepEqual(tt.args.q, tt.want) {
+				t.Errorf("Query.Sort() = %v, want %v", tt.args.q, tt.want)
 			}
 		})
 	}
@@ -689,16 +866,6 @@ func TestQuery_Where(t *testing.T) {
 			args: args{
 				q: &Query[int]{1, 2, 3, 4, 5},
 				f: nil,
-			},
-			want: &Query[int]{},
-		},
-		{
-			name: "nil sequence",
-			args: args{
-				q: &Query[int]{},
-				f: func(num int) bool {
-					return num > 0
-				},
 			},
 			want: &Query[int]{},
 		},
