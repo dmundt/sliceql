@@ -229,6 +229,20 @@ func (q *Query[E]) Last() *E {
 	return &(*q)[len(*q)-1]
 }
 
+// Reverse reverses the elements in the Query.
+//
+// No parameters.
+// Returns a pointer to a Query[E].
+func (q *Query[E]) Reverse() *Query[E] {
+	if len(*q) == 0 {
+		return &Query[E]{}
+	}
+	for i, j := 0, len(*q)-1; i < j; i, j = i+1, j-1 {
+		(*q)[i], (*q)[j] = (*q)[j], (*q)[i]
+	}
+	return q
+}
+
 // Skip removes the first 'count' elements from the Query.
 //
 // count: the number of elements to skip.

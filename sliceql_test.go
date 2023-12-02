@@ -645,6 +645,39 @@ func TestQuery_Last(t *testing.T) {
 	}
 }
 
+func TestQuery_Reverse(t *testing.T) {
+	type args struct {
+		q *Query[int]
+	}
+	tests := []struct {
+		name string
+		args args
+		want *Query[int]
+	}{
+		{
+			name: "empty slice",
+			args: args{
+				q: &Query[int]{},
+			},
+			want: &Query[int]{},
+		},
+		{
+			name: "non-empty slice",
+			args: args{
+				q: &Query[int]{1, 2, 3, 4, 5},
+			},
+			want: &Query[int]{5, 4, 3, 2, 1},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.args.q.Reverse(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Query.Reverse() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestQuery_Skip(t *testing.T) {
 	type args struct {
 		q     *Query[int]
