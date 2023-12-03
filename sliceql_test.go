@@ -1,4 +1,4 @@
-// Copyright 2023 Danie Mundt. All rights reserved.
+// Copyright 2023 Daniel Mundt. All rights reserved.
 // Use of this source code is governed by a
 // MIT license that can be found in the LICENSE file.
 
