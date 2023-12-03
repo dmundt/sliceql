@@ -1,8 +1,8 @@
-// Package sliceql implements query support for Go language slices.
-//
-// Source code and other details for the project are available at GitHub:
-//
-//	https://github.com/dmundt/sliceql
+// Copyright 2023 Danie Mundt. All rights reserved.
+// Use of this source code is governed by a
+// MIT license that can be found in the LICENSE file.
+
+// Package sliceql implements simple query support for Go language slices.
 package sliceql
 
 import (
@@ -241,18 +241,18 @@ func (q *Query[E]) Skip(n int) *Query[E] {
 // placed before the element at index j in the sorted slice.
 //
 // Returns a pointer to the original Query slice after sorting.
-func (q *Query[E]) Sort(cmp func(E, E) bool) *Query[E] {
-	if len(*q) < 1 || cmp == nil {
+func (q *Query[E]) Sort(le func(E, E) bool) *Query[E] {
+	if len(*q) < 1 || le == nil {
 		return q
 	}
 	sort.Slice(*q, func(i, j int) bool {
-		return cmp((*q)[i], (*q)[j])
+		return le((*q)[i], (*q)[j])
 	})
 	return q
 }
 
 // String returns a string representation of the Query object.
-func (q *Query[_]) String() string {
+func (q *Query[E]) String() string {
 	return fmt.Sprintf("%v", *q)
 }
 
