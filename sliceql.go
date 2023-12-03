@@ -10,9 +10,9 @@ import (
 	"sort"
 )
 
-// A Query is a slice of comparable elements.
+// A Query is a slice of any elements.
 // The zero value of a Query is an empty slice.
-type Query[E comparable] []E
+type Query[E any] []E
 
 // Create is a function that creates a new Query object.
 //
@@ -20,7 +20,7 @@ type Query[E comparable] []E
 // and create, a function that takes an integer index and returns an element of type E.
 //
 // The function returns a pointer to a Query object.
-func Create[E comparable](n int, f func(int) E) *Query[E] {
+func Create[E any](n int, f func(int) E) *Query[E] {
 	if n <= 0 || f == nil {
 		return &Query[E]{}
 	}
@@ -34,7 +34,7 @@ func Create[E comparable](n int, f func(int) E) *Query[E] {
 // NewQuery creates a new Query object.
 //
 // It takes a slice s of elements of type E and returns a pointer to a Query object.
-func NewQuery[E comparable](v []E) *Query[E] {
+func NewQuery[E any](v []E) *Query[E] {
 	// Make shallow copy of slice elements.
 	q := Query[E](v)
 	return &q
