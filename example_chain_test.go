@@ -21,7 +21,7 @@ func (p Person) String() string {
 // Example initializes a slice of Person objects and
 // performs a series of operations on that slice using
 // the NewQuery type.
-
+//
 // It demonstrates the usage of the Where() method
 // to filter elements based on a condition, the Sort() method
 // to sort the elements, and the Last() method
@@ -36,16 +36,14 @@ func Example() {
 	fmt.Println(s)
 
 	p := s.Where(func(p Person) bool {
-		// Filter by age > 30
+		// Filter by age > 30.
 		return p.Age > 30
 	}).Sort(func(p1, p2 Person) bool {
-		// Sort by age/
+		// Sort by ascending age.
 		return p1.Age < p2.Age
 	}).Last()
+	fmt.Println(p)
 
-	if p != nil {
-		fmt.Println(p)
-	}
 	// Output:
 	// [Bob: 31 Jenny: 26 John: 42 Michael: 17]
 	// John: 42

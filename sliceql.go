@@ -10,70 +10,9 @@ import (
 	"sort"
 )
 
-// The Actioner interface is implemented by any function that
-// takes a pointer to an element of type E. The element may be
-// modified in place.
-type Actioner[E any] func(*E)
-
-// The Combiner interface is implemented by any function that
-// takes two elements of type E and returns an element of type
-// E by combining them.
-type Combiner[E any] func(E, E) E
-
-// The Creater interface is implemented by any function that
-// takes the number of elements to create and returns an element
-// of type E.
-type Creater[E any] func(int) E
-
-// The Lesser interface is implemented by any function that
-// takes two elements of type E and returns a boolean value
-// indicating whether the first element is less than the
-// second element.
-type Lesser[E comparable] func(E, E) bool
-
-// The Tester interface is implemented by any function that
-// takes an element of type E, tests whether it satisfies
-// the given condition and returns a boolean value.
-type Tester[E any] func(E) bool
-
 // A Query is a slice of comparable elements.
 // The zero value of a Query is an empty slice.
 type Query[E comparable] []E
-
-// NewQuery creates a new Query object.
-//
-// It takes a slice s of elements of type E and returns a pointer to a Query object.
-func NewQuery[E comparable](s []E) *Query[E] {
-	// Make shallow copy of slice elements.
-	q := Query[E](s)
-	return &q
-}
-
-// From creates a new Query from the given slice.
-//
-// It makes a shallow copy of the slice elements.
-// Returns a pointer to the created Query.
-func From[E comparable](s []E) *Query[E] {
-	// Make shallow copy of slice elements.
-	q := Query[E](s)
-	return &q
-}
-
-// As returns the Query[E] as a slice of E.
-//
-// No parameters.
-// Returns a slice of E.
-func (q *Query[E]) As() []E {
-	return []E(*q)
-}
-
-// To returns the Query object as a slice of type E.
-//
-// No parameters.
-// Returns a slice of type E.
-func (q *Query[E]) To() []E {
-	return []E(*q)
-}
 
 // Create is a function that creates a new Query object.
 //
@@ -81,14 +20,23 @@ func (q *Query[E]) To() []E {
 // and create, a function that takes an integer index and returns an element of type E.
 //
 // The function returns a pointer to a Query object.
-func Create[E comparable](count int, create Creater[E]) *Query[E] {
-	if count <= 0 || create == nil {
+func Create[E comparable](n int, f func(int) E) *Query[E] {
+	if n <= 0 || f == nil {
 		return &Query[E]{}
 	}
-	q := Query[E](make([]E, count))
-	for i := 0; i < count; i++ {
-		q[i] = create(i)
+	q := Query[E](make([]E, n))
+	for i := 0; i < n; i++ {
+		q[i] = f(i)
 	}
+	return &q
+}
+
+// NewQuery creates a new Query object.
+//
+// It takes a slice s of elements of type E and returns a pointer to a Query object.
+func NewQuery[E comparable](v []E) *Query[E] {
+	// Make shallow copy of slice elements.
+	q := Query[E](v)
 	return &q
 }
 
@@ -100,12 +48,12 @@ func Create[E comparable](count int, create Creater[E]) *Query[E] {
 //
 // The function returns true if all elements in the query satisfy the test.
 // Otherwise, it returns false.
-func (q *Query[E]) All(test Tester[E]) bool {
-	if len(*q) == 0 || test == nil {
+func (q *Query[E]) All(f func(E) bool) bool {
+	if len(*q) < 1 || f == nil {
 		return false
 	}
 	for _, e := range *q {
-		if !test(e) {
+		if !f(e) {
 			return false
 		}
 	}
@@ -116,12 +64,12 @@ func (q *Query[E]) All(test Tester[E]) bool {
 //
 // The test parameter is a function to apply to each element in the Query.
 // Returns: true if any element satisfies the test, false otherwise.
-func (q *Query[E]) Any(test Tester[E]) bool {
-	if test == nil {
+func (q *Query[E]) Any(f func(E) bool) bool {
+	if f == nil {
 		return false
 	}
 	for _, e := range *q {
-		if test(e) {
+		if f(e) {
 			return true
 		}
 	}
@@ -132,13 +80,33 @@ func (q *Query[E]) Any(test Tester[E]) bool {
 //
 // Parameter(s):
 // - index: the index of the element to retrieve.
-// Return type(s):
+//
+// Returns:
 // - E: the element at the specified index.
-func (q *Query[E]) At(index int) *E {
-	if index < 0 || index >= len(*q) {
-		return nil
+func (q *Query[E]) At(i int) E {
+	if len(*q) < 1 {
+		panic("sliceql.At: empty list")
 	}
-	return &(*q)[index]
+	if i < 0 || i >= len(*q) {
+		panic("sliceql.At: index out of bounds")
+	}
+	return (*q)[i]
+}
+
+// Contains checks if the query contains an element that satisfies the given function.
+//
+// Parameters:
+// - f: a function that takes an element of type E and returns a boolean value.
+//
+// Returns:
+// - bool: true if there is an element that satisfies the function, false otherwise.
+func (q *Query[E]) Contains(f func(E) bool) bool {
+	for _, e := range *q {
+		if f(e) {
+			return true
+		}
+	}
+	return false
 }
 
 // Count returns the number of elements in the Query
@@ -146,42 +114,52 @@ func (q *Query[E]) At(index int) *E {
 //
 // test: The function that tests each element in the Query.
 // int: The number of elements that satisfy the given Tester function.
-func (q *Query[E]) Count(test Tester[E]) int {
-	if test == nil {
-		return 0
-	}
-	count := 0
+func (q *Query[E]) Count(f func(E) bool) int {
+	n := 0
 	for _, e := range *q {
-		if test(e) {
-			count++
+		if f(e) {
+			n++
 		}
 	}
-	return count
+	return n
 }
 
 // Each applies the given action function to each element in the Query.
 //
-// action: The function to apply to each element.
+// f: The function to apply to each element.
 // Returns: The Query itself.
-func (q *Query[E]) Each(action Actioner[E]) *Query[E] {
-	if action == nil {
-		return q
-	}
+func (q *Query[E]) Each(f func(E) E) *Query[E] {
 	for i := range *q {
-		action(&(*q)[i])
+		(*q)[i] = f((*q)[i])
 	}
 	return q
+}
+
+// Equal checks if the Query is equal to the given slice using the provided equality function.
+//
+// It takes a slice of type E and a function eq that takes two parameters of type E and returns a bool.
+// The function returns a bool indicating whether the Query is equal to the given slice.
+func (q *Query[E]) Equal(v []E, eq func(E, E) bool) bool {
+	if len(*q) != len(v) {
+		return false
+	}
+	for i := range *q {
+		if !eq((*q)[i], v[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 // First returns the first element of the Query.
 //
 // No parameters.
 // Returns the element of type E.
-func (q *Query[E]) First() *E {
-	if len(*q) == 0 {
-		return nil
+func (q *Query[E]) First() E {
+	if len(*q) < 1 {
+		panic("sliceql.First: empty list")
 	}
-	return &(*q)[0]
+	return (*q)[0]
 }
 
 // Fold applies the combine function to each element in the Query
@@ -194,24 +172,25 @@ func (q *Query[E]) First() *E {
 // It returns the accumulated result after applying the combine
 // function to each element in the Query.
 // The return type is the same as the type of the initial value.
-func (q *Query[E]) Fold(initial E, combine Combiner[E]) *E {
-	result := initial
-	for _, v := range *q {
-		result = combine(result, v)
+func (q *Query[E]) Fold(v E, f func(E, E) E) E {
+	result := v
+	for _, e := range *q {
+		result = f(result, e)
 	}
-	return &result
+	return result
 }
 
-// Index finds the index of an element in the Query.
+// Index returns the index of the first element in the Query[E] that satisfies the given condition.
 //
-// It takes an element e of type E as a parameter and returns
-// the index of the first occurrence of e in the Query. If e
-// is not found, it returns -1.
-func (q *Query[E]) Index(e E) int {
-	for i, v := range *q {
-		// v and e are type S, which has the comparable
+// The parameter `f` is a function that takes an element of type E and returns
+// a boolean value indicating whether the element satisfies the condition or not.
+// The function returns an integer value representing the index of the first element
+// that satisfies the condition. If no element satisfies the condition, it returns -1.
+func (q *Query[E]) Index(f func(E) bool) int {
+	for i, e := range *q {
+		// v and e are type E, which has the comparable
 		// constraint, so we can use == here.
-		if v == e {
+		if f(e) {
 			return i
 		}
 	}
@@ -222,11 +201,11 @@ func (q *Query[E]) Index(e E) int {
 //
 // It does not take any parameters.
 // It returns the type E.
-func (q *Query[E]) Last() *E {
-	if len(*q) == 0 {
-		return nil
+func (q *Query[E]) Last() E {
+	if len(*q) < 1 {
+		panic("sliceql.Last: empty list")
 	}
-	return &(*q)[len(*q)-1]
+	return (*q)[len(*q)-1]
 }
 
 // Reverse reverses the elements in the Query.
@@ -234,9 +213,6 @@ func (q *Query[E]) Last() *E {
 // No parameters.
 // Returns a pointer to a Query[E].
 func (q *Query[E]) Reverse() *Query[E] {
-	if len(*q) == 0 {
-		return &Query[E]{}
-	}
 	for i, j := 0, len(*q)-1; i < j; i, j = i+1, j-1 {
 		(*q)[i], (*q)[j] = (*q)[j], (*q)[i]
 	}
@@ -245,13 +221,16 @@ func (q *Query[E]) Reverse() *Query[E] {
 
 // Skip removes the first 'count' elements from the Query.
 //
-// count: the number of elements to skip.
+// n: the number of elements to skip.
 // Returns: a pointer to the modified Query.
-func (q *Query[E]) Skip(count int) *Query[E] {
-	if len(*q) == 0 || count < 0 {
-		return &Query[E]{}
+func (q *Query[E]) Skip(n int) *Query[E] {
+	if len(*q) < 1 {
+		panic("sliceql.Skip: empty list")
 	}
-	m := min(count, len(*q))
+	if n < 0 || n > len(*q) {
+		panic("sliceql.Skip: index out of bounds")
+	}
+	m := min(n, len(*q))
 	*q = (*q)[m:]
 	return q
 }
@@ -262,28 +241,44 @@ func (q *Query[E]) Skip(count int) *Query[E] {
 // placed before the element at index j in the sorted slice.
 //
 // Returns a pointer to the original Query slice after sorting.
-func (q *Query[E]) Sort(less Lesser[E]) *Query[E] {
-	if len(*q) == 0 || less == nil {
+func (q *Query[E]) Sort(cmp func(E, E) bool) *Query[E] {
+	if len(*q) < 1 || cmp == nil {
 		return q
 	}
 	sort.Slice(*q, func(i, j int) bool {
-		return less((*q)[i], (*q)[j])
+		return cmp((*q)[i], (*q)[j])
 	})
 	return q
+}
+
+// String returns a string representation of the Query object.
+func (q *Query[_]) String() string {
+	return fmt.Sprintf("%v", *q)
 }
 
 // Take removes elements from the Query and returns
 // a new Query with the specified number of elements.
 //
-// count: the number of elements to take from the Query.
+// n: the number of elements to take from the Query.
 // *Query[E]: a new Query with the specified number of elements.
-func (q *Query[E]) Take(count int) *Query[E] {
-	if len(*q) == 0 || count < 0 {
-		return &Query[E]{}
+func (q *Query[E]) Take(n int) *Query[E] {
+	if len(*q) < 1 {
+		panic("sliceql.Take: empty list")
 	}
-	m := min(count, len(*q))
+	if n < 0 || n > len(*q) {
+		panic("sliceql.Take: index out of bounds")
+	}
+	m := min(n, len(*q))
 	*q = (*q)[:m]
 	return q
+}
+
+// ToSlice returns the Query[E] as a slice of E.
+//
+// No parameters.
+// Returns a slice of type E.
+func (q *Query[E]) ToSlice() []E {
+	return []E(*q)
 }
 
 // Where filters the elements in the Query based on
@@ -295,21 +290,16 @@ func (q *Query[E]) Take(count int) *Query[E] {
 // Query's element type and return a boolean value.
 //
 // The function returns a pointer to the filtered Query.
-func (q *Query[E]) Where(test Tester[E]) *Query[E] {
-	if len(*q) == 0 || test == nil {
+func (q *Query[E]) Where(f func(E) bool) *Query[E] {
+	if len(*q) < 1 || f == nil {
 		return &Query[E]{}
 	}
 	result := Query[E](make([]E, 0))
 	for _, e := range *q {
-		if test(e) {
+		if f(e) {
 			result = append(result, e)
 		}
 	}
 	*q = result
 	return q
-}
-
-// String returns a string representation of the Query object.
-func (q *Query[_]) String() string {
-	return fmt.Sprintf("%v", *q)
 }
