@@ -25,7 +25,7 @@ func (p Person) String() string {
 // It demonstrates the usage of the Where() method
 // to filter elements based on a condition, the Sort() method
 // to sort the elements, and the Last() method
-// to retrieve the last elementin the slice.
+// to retrieve the last element in the slice.
 func Example() {
 	s := NewQuery([]Person{
 		{"Bob", 31},
@@ -42,10 +42,10 @@ func Example() {
 		// Sort by age/
 		return p1.Age < p2.Age
 	}).Last()
+
 	if p != nil {
 		fmt.Println(p)
 	}
-
 	// Output:
 	// [Bob: 31 Jenny: 26 John: 42 Michael: 17]
 	// John: 42

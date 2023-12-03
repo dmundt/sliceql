@@ -2,8 +2,7 @@
 //
 // Source code and other details for the project are available at GitHub:
 //
-//   https://github.com/dmundt/sliceql
-//
+//	https://github.com/dmundt/sliceql
 package sliceql
 
 import (
@@ -15,7 +14,6 @@ func ExampleNew() {
 	// New() returns a slice with the given elements.
 	s := NewQuery[int]([]int{1, 2, 3, 4, 5})
 	fmt.Println(s.String())
-
 	// Output:
 	// [1 2 3 4 5]
 }
@@ -27,7 +25,6 @@ func ExampleCreate() {
 		return index + 1
 	})
 	fmt.Println(s.String())
-
 	// Output:
 	// [1 2 3 4 5 6 7 8 9 10]
 }
@@ -41,7 +38,6 @@ func ExampleQuery_All() {
 	fmt.Println(s.All(func(e int) bool {
 		return e%2 == 0
 	}))
-
 	// Output:
 	// false
 }
@@ -55,7 +51,6 @@ func ExampleQuery_Any() {
 	fmt.Println(s.Any(func(e int) bool {
 		return e%2 == 0
 	}))
-
 	// Output:
 	// true
 }
@@ -65,7 +60,6 @@ func ExampleQuery_At() {
 	// At() returns the element at the given index.
 	s := NewQuery[int]([]int{1, 2, 3, 4, 5})
 	fmt.Println(*s.At(2))
-
 	// Output:
 	// 3
 }
